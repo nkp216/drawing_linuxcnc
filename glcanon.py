@@ -1,21 +1,4 @@
-
-#    This is a component of AXIS, a front-end for emc
-#    Copyright 2004, 2005, 2006 Jeff Epler <jepler@unpythonic.net>
-#
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation; either version 2 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+# -*- coding: utf-8 -*-
 from rs274 import Translated, ArcsToSegmentsMixin, OpenGLTk
 from minigl import *
 import math
@@ -24,6 +7,10 @@ import hershey
 import linuxcnc
 import array
 import gcode
+
+import hal
+
+
 
 def minmax(*args):
     return min(*args), max(*args)
@@ -89,7 +76,7 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
         self.notify = 0
         self.notify_message = ""
 
-    def comment(self, arg):
+    def comment(self, arg):   # -----------------------------------------------------------команды в G-коде
         if arg.startswith("AXIS,"):
             parts = arg.split(",")
             command = parts[1]
@@ -244,7 +231,8 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
 
     def highlight(self, lineno, geometry):
         glLineWidth(3)
-        c = self.colors['selected']
+        c = self.colors['backplotjog']
+
         glColor3f(*c)
         glBegin(GL_LINES)
         coords = []
@@ -277,7 +265,9 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
             x = (self.min_extents[0] + self.max_extents[0])/2
             y = (self.min_extents[1] + self.max_extents[1])/2
             z = (self.min_extents[2] + self.max_extents[2])/2
+
         return x, y, z
+ 
 
     def color_with_alpha(self, name):
         glColor4f(*(self.colors[name] + (self.colors.get(name+'_alpha', 1/3.),)))
@@ -342,7 +332,7 @@ class GlCanonDraw:
         'axis_z': (0.20, 0.20, 1.00),
         'label_limit': (1.00, 0.21, 0.23),
         'backplotjog': (1.00, 1.00, 0.00),
-        'selected': (0.00, 1.00, 1.00),
+        'selected': (1.00, 1.00, 0.00),
         'lathetool': (0.80, 0.80, 0.80),
         'dwell': (1.00, 0.50, 0.50),
         'overlay_foreground': (1.00, 1.00, 1.00),
@@ -381,6 +371,9 @@ class GlCanonDraw:
         self.select_buffer_size = 100
         self.cached_tool = -1
         self.initialised = 0
+        self.comp = hal.component('drawing')
+        self.comp.newpin('segment', hal.HAL_S32, hal.HAL_OUT)
+        self.comp.ready()
 
     def realize(self):
         self.hershey = hershey.Hershey()
@@ -441,6 +434,12 @@ class GlCanonDraw:
         glMatrixMode(GL_PROJECTION)
         glPopMatrix()
         glMatrixMode(GL_MODELVIEW)
+        
+
+        if buffer:
+            self.comp['segment'] = names[0]
+
+           
 
     def dlist(self, name, n=1, gen=lambda n: None):
         if name not in self._dlists:
@@ -1011,7 +1010,7 @@ class GlCanonDraw:
                 glCallList(alist)
             glPopMatrix()
 
-        if self.get_show_limits():
+        if self.get_show_limits(): # ==================================================================линии ограничивающие рабочий объём станка
             glLineWidth(1)
             glColor3f(1.0,0.0,0.0)
             glLineStipple(1, 0x1111)
@@ -1181,18 +1180,34 @@ class GlCanonDraw:
         ypos -= linespace+5
         i=0
         glColor3f(*self.colors['overlay_foreground'])
-        for string in posstrs:
-            maxlen = max(maxlen, len(string))
-            glRasterPos2i(5, ypos)
-            for char in string:
-                glCallList(base + ord(char))
-            if i < len(homed) and homed[i]:
-                glRasterPos2i(pixel_width + 8, ypos)
-                glBitmap(13, 16, 0, 3, 17, 0, homeicon)
-            if i < len(homed) and limit[i]:
-                glBitmap(13, 16, 0, 1, 17, 0, limiticon)
-            ypos -= linespace
-            i = i + 1
+        if not self.get_show_offsets():
+            for string in posstrs:
+                maxlen = max(maxlen, len(string))
+                glRasterPos2i(5, ypos)
+                for char in string:
+                    glCallList(base + ord(char))
+                if i < len(homed) and homed[i]:
+                    glRasterPos2i(pixel_width + 8, ypos)
+                    glBitmap(13, 16, 0, 3, 17, 0, homeicon)
+                if i < len(homed) and limit[i]:
+                    glBitmap(13, 16, 0, 1, 17, 0, limiticon)
+                ypos -= linespace
+                i = i + 1
+        if self.get_show_offsets():
+            if self.is_lathe():
+                homed.insert(0,homed[0])
+            i=0
+            for string in droposstrs:
+                maxlen = max(maxlen, len(string))
+                glRasterPos2i(5, ypos)
+                for char in string:
+                    glCallList(base + ord(char))
+                if i < len(homed) and homed[i]:
+                    glRasterPos2i(charwidth *3, ypos)
+                    glBitmap(13, 16, 0, 3, 17, 0, homeicon)
+                ypos -= linespace
+                i = i + 1
+
         glDepthFunc(GL_LESS)
         glDepthMask(GL_TRUE)
 
@@ -1286,12 +1301,18 @@ class GlCanonDraw:
                 g92_offset = self.from_internal_units(g92_offset, 1)
                 tlo_offset = self.from_internal_units(tlo_offset, 1)
                 format = "% 6s:% 9.3f"
-                droformat = " " + format + "  DTG %1s:% 9.3f"
+                if self.get_show_distance_to_go():
+                    droformat = " " + format + "  DTG %1s:% 9.3f"
+                else:
+                    droformat = " " + format
                 offsetformat = "% 5s %1s:% 9.3f  G92 %1s:% 9.3f"
                 rotformat = "% 5s %1s:% 9.3f"
             else:
                 format = "% 6s:% 9.4f"
-                droformat = " " + format + "  DTG %1s:% 9.4f"
+                if self.get_show_distance_to_go():
+                    droformat = " " + format + "  DTG %1s:% 9.4f"
+                else:
+                    droformat = " " + format
                 offsetformat = "% 5s %1s:% 9.4f  G92 %1s:% 9.4f"
                 rotformat = "% 5s %1s:% 9.4f"
             diaformat = " " + format
@@ -1302,8 +1323,10 @@ class GlCanonDraw:
                 a = "XYZABCUVW"[i]
                 if s.axis_mask & (1<<i):
                     posstrs.append(format % (a, positions[i]))
-                    droposstrs.append(droformat % (a, positions[i], a, axisdtg[i]))
-
+                    if self.get_show_distance_to_go():
+                        droposstrs.append(droformat % (a, positions[i], a, axisdtg[i]))
+                    else:
+                        droposstrs.append(droformat % (a, positions[i]))
             droposstrs.append("")
 
             for i in range(9):
@@ -1328,8 +1351,12 @@ class GlCanonDraw:
             if self.is_lathe():
                 posstrs[0] = format % ("Rad", positions[0])
                 posstrs.insert(1, format % ("Dia", positions[0]*2.0))
-                droposstrs[0] = droformat % ("Rad", positions[0], "R", axisdtg[0])
-                droposstrs.insert(1, diaformat % ("Dia", positions[0]*2.0))
+                if self.get_show_distance_to_go():
+                    droposstrs[0] = droformat % ("Rad", positions[0], "R", axisdtg[0])
+                    droposstrs.insert(1, droformat % ("Dia", positions[0]*2.0, "D", axisdtg[0]*2.0))
+                else:
+                    droposstrs[0] = droformat % ("Rad", positions[0])
+                    droposstrs.insert(1, diaformat % ("Dia", positions[0]*2.0))
 
             if self.get_show_machine_speed():
                 spd = self.to_internal_linear_unit(s.current_vel)
@@ -1338,6 +1365,12 @@ class GlCanonDraw:
                 else:
                     spd = spd * 60
                 posstrs.append(format % ("Vel", spd))
+                pos=0
+                for i in range(9):
+                    if s.axis_mask & (1<<i): pos +=1
+                if self.is_lathe():
+                    pos +=1
+                droposstrs.insert(pos, " " + format % ("Vel", spd))
 
             if self.get_show_distance_to_go():
                 dtg = self.to_internal_linear_unit(s.distance_to_go)
@@ -1349,7 +1382,6 @@ class GlCanonDraw:
             posstrs = ["  %s:% 9.4f" % i for i in
                 zip(range(self.get_num_joints()), s.joint_actual_position)]
             droposstrs = posstrs
-
         return limit, homed, posstrs, droposstrs
 
 
