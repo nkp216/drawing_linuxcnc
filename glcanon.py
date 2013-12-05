@@ -376,6 +376,10 @@ class GlCanonDraw:
         self.initialised = 0
         self.pincomp = hal.component('drawing')
         self.pincomp.newpin('segment', hal.HAL_S32, hal.HAL_OUT)
+        self.pincomp.newpin('begin_point_blank', hal.HAL_FLOAT, hal.HAL_IN)
+        self.pincomp.newpin('end_point_blank', hal.HAL_FLOAT, hal.HAL_IN)
+        self.pincomp.newpin('height_blank', hal.HAL_FLOAT, hal.HAL_IN)
+        self.pincomp.newpin('length_blank', hal.HAL_FLOAT, hal.HAL_IN)
         self.pincomp.ready()
 
     def realize(self):
@@ -549,33 +553,35 @@ class GlCanonDraw:
         else:
             glColor3f(*self.colors['label_ok'])
         return cond
-        
-    def blank (self): # ----------------------------------------------------------------------показать заготовку
+        ########################################################################################################### --показать заготовку       
+    def blank (self):            
         s = self.stat
         g = self.canon
         if g is None: return
         x,y,z,p = 0,1,2,3
         view = self.get_view()
-        ###########################################################################################################
         self.color_limit(0)
         glColor3f(*self.colors['axis_z'])
         glBegin(GL_LINES)
         if view == z :
+            bp = self.pincomp['begin_point_blank']
+            ep = self.pincomp['end_point_blank']
+            hb = self.pincomp['height_blank']
+            lb = self.pincomp['length_blank']
 
-            glVertex3f(-10, -10, 0)
-            glVertex3f(10, -10, 0)
+            glVertex3f(bp,ep,0)
+            glVertex3f((bp+lb),ep,0)
             
-            glVertex3f(10, -10, 0)
-            glVertex3f(10, 5, 0)
+            glVertex3f((bp+lb),ep,0)
+            glVertex3f((bp+lb),(ep+hb),0)
             
-            glVertex3f(10, 5, 0)
-            glVertex3f(-10, 5, 0)
+            glVertex3f((bp+lb),(ep+hb),0)
+            glVertex3f(bp,(ep+hb),0)
             
-            glVertex3f(-10, 5, 0)
-            glVertex3f(-10, -10, 0)
+            glVertex3f(bp,(ep+hb),0)
+            glVertex3f(bp,ep,0)
         glEnd()
         ###########################################################################################################
-
     def show_extents(self): # ----------------------------------------------------------------------размеры
         s = self.stat
         g = self.canon
