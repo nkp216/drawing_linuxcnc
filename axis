@@ -3192,7 +3192,7 @@ if os.path.exists(initialfile):
 if lathe:
     commands.set_view_y()
 else:
-    commands.set_view_p()
+    commands.set_view_z()
 if o.canon:
     x = (o.canon.min_extents[0] + o.canon.max_extents[0])/2
     y = (o.canon.min_extents[1] + o.canon.max_extents[1])/2
