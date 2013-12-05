@@ -76,6 +76,7 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
         self.notify = 0
         self.notify_message = ""
 
+
     def comment(self, arg):   # -----------------------------------------------------------команды в G-коде
         if arg.startswith("AXIS,"):
             parts = arg.split(",")
@@ -138,8 +139,9 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
     def draw_dwells(self, dwells, alpha, for_selection, j0=0):
         return linuxcnc.draw_dwells(self.geometry, dwells, alpha, for_selection, self.is_lathe())
 
-    def calc_extents(self):
+    def calc_extents(self):#----------------------------------------------------------------------------вычисление размеров
         self.min_extents, self.max_extents, self.min_extents_notool, self.max_extents_notool = gcode.calc_extents(self.arcfeed, self.feed, self.traverse)
+
         if self.is_foam:
             min_z = min(self.foam_z, self.foam_w)
             max_z = max(self.foam_z, self.foam_w)
@@ -171,12 +173,13 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
     def change_tool(self, arg):
         self.first_move = True
 
-    def straight_traverse(self, x,y,z, a,b,c, u, v, w):
+    def straight_traverse(self, x,y,z, a,b,c, u, v, w): # ---------------------прямые перемещения
         if self.suppress > 0: return
         l = self.rotate_and_translate(x,y,z,a,b,c,u,v,w)
         if not self.first_move:
                 self.traverse_append((self.lineno, self.lo, l, [self.xo, self.yo, self.zo]))
         self.lo = l
+
 
     def rigid_tap(self, x, y, z):
         if self.suppress > 0: return
@@ -371,9 +374,9 @@ class GlCanonDraw:
         self.select_buffer_size = 100
         self.cached_tool = -1
         self.initialised = 0
-        self.comp = hal.component('drawing')
-        self.comp.newpin('segment', hal.HAL_S32, hal.HAL_OUT)
-        self.comp.ready()
+        self.pincomp = hal.component('drawing')
+        self.pincomp.newpin('segment', hal.HAL_S32, hal.HAL_OUT)
+        self.pincomp.ready()
 
     def realize(self):
         self.hershey = hershey.Hershey()
@@ -437,7 +440,7 @@ class GlCanonDraw:
         
 
         if buffer:
-            self.comp['segment'] = names[0]
+            self.pincomp['segment'] = names[0]
 
            
 
@@ -546,9 +549,34 @@ class GlCanonDraw:
         else:
             glColor3f(*self.colors['label_ok'])
         return cond
+        
+    def blank (self): # ----------------------------------------------------------------------показать заготовку
+        s = self.stat
+        g = self.canon
+        if g is None: return
+        x,y,z,p = 0,1,2,3
+        view = self.get_view()
+        ###########################################################################################################
+        self.color_limit(0)
+        glColor3f(*self.colors['axis_z'])
+        glBegin(GL_LINES)
+        if view == z :
 
+            glVertex3f(-10, -10, 0)
+            glVertex3f(10, -10, 0)
+            
+            glVertex3f(10, -10, 0)
+            glVertex3f(10, 5, 0)
+            
+            glVertex3f(10, 5, 0)
+            glVertex3f(-10, 5, 0)
+            
+            glVertex3f(-10, 5, 0)
+            glVertex3f(-10, -10, 0)
+        glEnd()
+        ###########################################################################################################
 
-    def show_extents(self):
+    def show_extents(self): # ----------------------------------------------------------------------размеры
         s = self.stat
         g = self.canon
 
@@ -587,11 +615,11 @@ class GlCanonDraw:
             glVertex3f(g.min_extents[x], y_pos, z_pos)
             glVertex3f(g.max_extents[x], y_pos, z_pos)
 
-            glVertex3f(g.min_extents[x], y_pos - dashwidth, z_pos - zdashwidth)
-            glVertex3f(g.min_extents[x], y_pos + dashwidth, z_pos + zdashwidth)
+            #glVertex3f(g.min_extents[x], y_pos - dashwidth, z_pos - zdashwidth)
+            #glVertex3f(g.min_extents[x], y_pos + dashwidth, z_pos + zdashwidth)
 
-            glVertex3f(g.max_extents[x], y_pos - dashwidth, z_pos - zdashwidth)
-            glVertex3f(g.max_extents[x], y_pos + dashwidth, z_pos + zdashwidth)
+            #glVertex3f(g.max_extents[x], y_pos - dashwidth, z_pos - zdashwidth)
+            #glVertex3f(g.max_extents[x], y_pos + dashwidth, z_pos + zdashwidth)
 
         # y dimension
         if view != y and g.max_extents[y] > g.min_extents[y]:
@@ -599,11 +627,11 @@ class GlCanonDraw:
             glVertex3f(x_pos, g.min_extents[y], z_pos)
             glVertex3f(x_pos, g.max_extents[y], z_pos)
 
-            glVertex3f(x_pos - dashwidth, g.min_extents[y], z_pos - zdashwidth)
-            glVertex3f(x_pos + dashwidth, g.min_extents[y], z_pos + zdashwidth)
+            #glVertex3f(x_pos - dashwidth, g.min_extents[y], z_pos - zdashwidth)
+            #glVertex3f(x_pos + dashwidth, g.min_extents[y], z_pos + zdashwidth)
 
-            glVertex3f(x_pos - dashwidth, g.max_extents[y], z_pos - zdashwidth)
-            glVertex3f(x_pos + dashwidth, g.max_extents[y], z_pos + zdashwidth)
+            #glVertex3f(x_pos - dashwidth, g.max_extents[y], z_pos - zdashwidth)
+            #glVertex3f(x_pos + dashwidth, g.max_extents[y], z_pos + zdashwidth)
 
         # z dimension
         if view != z and g.max_extents[z] > g.min_extents[z]:
@@ -619,6 +647,7 @@ class GlCanonDraw:
             glVertex3f(x_pos + dashwidth, y_pos + zdashwidth, g.max_extents[z])
 
         glEnd()
+
 
         # Labels
         if self.get_show_relative():
@@ -936,6 +965,7 @@ class GlCanonDraw:
 
             if self.get_show_extents():
                 self.show_extents()
+            self.blank()
 
         if self.get_show_live_plot() or self.get_show_program():
     
@@ -1617,6 +1647,7 @@ class GlCanonDraw:
             self.stale_dlist('program_norapids')
             self.stale_dlist('select_rapids')
             self.stale_dlist('select_norapids')
+            
 
         return result, seq
 
