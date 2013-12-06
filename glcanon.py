@@ -233,7 +233,7 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
 
 
     def highlight(self, lineno, geometry):
-        glLineWidth(3)
+        glLineWidth(5)
         c = self.colors['backplotjog']
 
         glColor3f(*c)
@@ -244,6 +244,7 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
             linuxcnc.line9(geometry, line[1], line[2])
             coords.append(line[1][:3])
             coords.append(line[2][:3])
+
         for line in self.arcfeed:
             if line[0] != lineno: continue
             linuxcnc.line9(geometry, line[1], line[2])
@@ -269,6 +270,26 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
             y = (self.min_extents[1] + self.max_extents[1])/2
             z = (self.min_extents[2] + self.max_extents[2])/2
 
+        xend = coords[1][0] # коорданата конца выделенного отрезка x
+        yend = coords[1][1] # коорданата конца выделенного отрезка y
+         
+        '''glTranslatef(xend ,yend ,0)
+        q = gluNewQuadric()
+        glEnable(GL_LIGHTING)
+        gluDisk(q, 0, .1, 32, 1)
+        glDisable(GL_LIGHTING)
+        gluDeleteQuadric(q)'''
+         
+        glBegin(GL_LINES)
+        glColor3f(1,0,0)
+
+        glVertex3f((xend -1),(yend +1),0)
+        glVertex3f((xend +1),(yend -1),0)
+        
+        glVertex3f((xend +1),(yend +1),0)
+        glVertex3f((xend -1),(yend -1),0)  
+
+        glEnd()      
         return x, y, z
  
 
@@ -376,11 +397,14 @@ class GlCanonDraw:
         self.initialised = 0
         self.pincomp = hal.component('drawing')
         self.pincomp.newpin('segment', hal.HAL_S32, hal.HAL_OUT)
-        self.pincomp.newpin('begin_point_blank', hal.HAL_FLOAT, hal.HAL_IN)
-        self.pincomp.newpin('end_point_blank', hal.HAL_FLOAT, hal.HAL_IN)
+        self.pincomp.newpin('begin_blank_horiz', hal.HAL_FLOAT, hal.HAL_IN)
+        self.pincomp.newpin('begin_blank_vertical', hal.HAL_FLOAT, hal.HAL_IN)
         self.pincomp.newpin('height_blank', hal.HAL_FLOAT, hal.HAL_IN)
         self.pincomp.newpin('length_blank', hal.HAL_FLOAT, hal.HAL_IN)
         self.pincomp.ready()
+
+
+
 
     def realize(self):
         self.hershey = hershey.Hershey()
@@ -490,6 +514,7 @@ class GlCanonDraw:
             x, y, z = 0.0, 0.0, 0.0
         glEndList()
         self.set_centerpoint(x, y, z)
+     
 
     @with_context_swap
     def redraw_perspective(self):
@@ -562,12 +587,13 @@ class GlCanonDraw:
         view = self.get_view()
         self.color_limit(0)
         glColor3f(*self.colors['axis_z'])
+
         glBegin(GL_LINES)
         if view == z :
-            bp = self.pincomp['begin_point_blank']
-            ep = self.pincomp['end_point_blank']
-            hb = self.pincomp['height_blank']
-            lb = self.pincomp['length_blank']
+            bp = self.pincomp['begin_blank_horiz'] /25.4
+            ep = self.pincomp['begin_blank_vertical']/25.4
+            hb = self.pincomp['height_blank']/25.4
+            lb = self.pincomp['length_blank']/25.4
 
             glVertex3f(bp,ep,0)
             glVertex3f((bp+lb),ep,0)
@@ -577,10 +603,12 @@ class GlCanonDraw:
             
             glVertex3f((bp+lb),(ep+hb),0)
             glVertex3f(bp,(ep+hb),0)
-            
+
             glVertex3f(bp,(ep+hb),0)
             glVertex3f(bp,ep,0)
+            
         glEnd()
+
         ###########################################################################################################
     def show_extents(self): # ----------------------------------------------------------------------размеры
         s = self.stat
@@ -1116,7 +1144,7 @@ class GlCanonDraw:
             glLineWidth(1)
             glDepthFunc(GL_LESS)
 
-        if self.get_show_tool():
+        if self.get_show_tool():#=========================================показать инструмент
             pos = self.lp.last(self.get_show_live_plot())
             if pos is None: pos = [0] * 6
             rx, ry, rz = pos[3:6]
