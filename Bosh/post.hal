@@ -1,0 +1,20 @@
+loadrt sum2  count=4
+addf sum2.0  servo-thread
+addf sum2.1  servo-thread
+addf sum2.2  servo-thread
+addf sum2.3  servo-thread
+
+setp  sum2.0.offset  -100
+setp  sum2.1.offset   350
+setp  sum2.2.offset   200
+setp  sum2.3.offset  -100
+
+net off_in0           sum2.0.in0                 gladevcp.hal_spinbutton-f
+net off_in1           sum2.1.in0                 gladevcp.hal_spinbutton1-f
+net off_in2           sum2.2.in0                 gladevcp.hal_spinbutton2-f
+net off_in3           sum2.3.in0                 gladevcp.hal_spinbutton3-f
+
+net begin_horiz       sum2.0.out                 drawing.begin_blank_horiz
+net length_blank      sum2.1.out                 drawing.length_blank
+net height_blank      sum2.2.out                 drawing.height_blank
+net begin_vertical    sum2.3.out                 drawing.begin_blank_vertical
