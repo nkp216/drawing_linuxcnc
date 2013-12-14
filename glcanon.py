@@ -265,31 +265,26 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
             x = reduce(lambda x,y:x+y, [c[0] for c in coords]) / len(coords)
             y = reduce(lambda x,y:x+y, [c[1] for c in coords]) / len(coords)
             z = reduce(lambda x,y:x+y, [c[2] for c in coords]) / len(coords)
+            
+            xend = coords[1][0] # коорданата конца выделенного отрезка x
+            yend = coords[1][1] # коорданата конца выделенного отрезка y
+             
+            glBegin(GL_LINES)
+            glColor3f(1,0,0)
+
+            glVertex3f((xend -1),(yend +1),0)
+            glVertex3f((xend +1),(yend -1),0)
+            
+            glVertex3f((xend +1),(yend +1),0)
+            glVertex3f((xend -1),(yend -1),0)  
+
+            glEnd() 
         else:
             x = (self.min_extents[0] + self.max_extents[0])/2
             y = (self.min_extents[1] + self.max_extents[1])/2
             z = (self.min_extents[2] + self.max_extents[2])/2
 
-        xend = coords[1][0] # коорданата конца выделенного отрезка x
-        yend = coords[1][1] # коорданата конца выделенного отрезка y
-         
-        '''glTranslatef(xend ,yend ,0)
-        q = gluNewQuadric()
-        glEnable(GL_LIGHTING)
-        gluDisk(q, 0, .1, 32, 1)
-        glDisable(GL_LIGHTING)
-        gluDeleteQuadric(q)'''
-         
-        glBegin(GL_LINES)
-        glColor3f(1,0,0)
-
-        glVertex3f((xend -1),(yend +1),0)
-        glVertex3f((xend +1),(yend -1),0)
-        
-        glVertex3f((xend +1),(yend +1),0)
-        glVertex3f((xend -1),(yend -1),0)  
-
-        glEnd()      
+     
         return x, y, z
  
 
