@@ -234,7 +234,7 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
 
     def highlight(self, lineno, geometry):
         glLineWidth(5)
-        c = self.colors['backplotjog']
+        c = self.colors['selected']
 
         glColor3f(*c)
         glBegin(GL_LINES)
@@ -265,28 +265,11 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
             x = reduce(lambda x,y:x+y, [c[0] for c in coords]) / len(coords)
             y = reduce(lambda x,y:x+y, [c[1] for c in coords]) / len(coords)
             z = reduce(lambda x,y:x+y, [c[2] for c in coords]) / len(coords)
-            
-            xend = coords[1][0] # коорданата конца выделенного отрезка x
-            yend = coords[1][1] # коорданата конца выделенного отрезка y
-             
-            glBegin(GL_LINES)
-            glColor3f(1,0,0)
-
-            glVertex3f((xend -1),(yend +1),0)
-            glVertex3f((xend +1),(yend -1),0)
-            
-            glVertex3f((xend +1),(yend +1),0)
-            glVertex3f((xend -1),(yend -1),0)  
-
-            glEnd() 
         else:
             x = (self.min_extents[0] + self.max_extents[0])/2
             y = (self.min_extents[1] + self.max_extents[1])/2
-            z = (self.min_extents[2] + self.max_extents[2])/2
-
-     
+            z = (self.min_extents[2] + self.max_extents[2])/2     
         return x, y, z
- 
 
     def color_with_alpha(self, name):
         glColor4f(*(self.colors[name] + (self.colors.get(name+'_alpha', 1/3.),)))
@@ -580,29 +563,46 @@ class GlCanonDraw:
         if g is None: return
         x,y,z,p = 0,1,2,3
         view = self.get_view()
+
         self.color_limit(0)
-        glColor3f(*self.colors['axis_z'])
+        glColor3f(*self.colors['small_origin'])
 
         glBegin(GL_LINES)
-        if view == z :
+        if 1 :
             bp = self.pincomp['begin_blank_horiz'] /25.4
             ep = self.pincomp['begin_blank_vertical']/25.4
             hb = self.pincomp['height_blank']/25.4
             lb = self.pincomp['length_blank']/25.4
 
-            glVertex3f(bp,ep,0)
-            glVertex3f((bp+lb),ep,0)
+            #заготовка:
+            glVertex3f(bp,0,ep)
+            glVertex3f((bp+hb/2),0,ep)
             
-            glVertex3f((bp+lb),ep,0)
-            glVertex3f((bp+lb),(ep+hb),0)
+            glVertex3f((bp+hb/2),0,ep)
+            glVertex3f((bp+hb/2),0,(ep-lb))
             
-            glVertex3f((bp+lb),(ep+hb),0)
-            glVertex3f(bp,(ep+hb),0)
+            glVertex3f((bp+hb/2),0,(ep-lb))
+            glVertex3f(bp-hb/2,0,(ep-lb))
 
-            glVertex3f(bp,(ep+hb),0)
-            glVertex3f(bp,ep,0)
+            glVertex3f(bp-hb/2,0,(ep-lb))
+            glVertex3f(bp-hb/2,0,(ep))
             
+            glVertex3f(bp-hb/2,0,(ep))
+            glVertex3f(bp,0,ep)
+            #осевая линия:
+            glVertex3f(bp,0,ep)
+            glVertex3f(bp,0,ep)
+
+                                                            
         glEnd()
+        kk = lb
+        while kk>0:
+            glBegin(GL_LINES)
+            glVertex3f(bp,0,ep)
+            glVertex3f(bp,0,(ep-lb*0.1))
+            glEnd()
+            kk-=lb*0.13
+            ep-=lb*0.15
 
         ###########################################################################################################
     def show_extents(self): # ----------------------------------------------------------------------размеры
