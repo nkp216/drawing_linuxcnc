@@ -75,6 +75,7 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
         self.foam_w = 1.5
         self.notify = 0
         self.notify_message = ""
+        self.blank_f = 0
 
 
     def comment(self, arg):   # -----------------------------------------------------------команды в G-коде
@@ -84,6 +85,15 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
             if command == "stop": raise KeyboardInterrupt
             if command == "hide": self.suppress += 1
             if command == "show": self.suppress -= 1
+            if command == "BLANK":
+                self.blank_f = 1
+                if len(parts) > 2 :
+                    try:
+                        self.blank_d = float(parts[2])
+                        self.blank_l = float(parts[3])
+                    except:
+                        self.blank_d = 0
+                        self.blank_l = 0
             if command == "XY_Z_POS": 
                 if len(parts) > 2 :
                     try:
@@ -491,7 +501,7 @@ class GlCanonDraw:
         else:
             x, y, z = 0.0, 0.0, 0.0
         glEndList()
-        self.set_centerpoint(x, y, z)
+        self.set_centerpoint(x, y, z)#координаты центровки 
      
 
     @with_context_swap
@@ -556,7 +566,9 @@ class GlCanonDraw:
         else:
             glColor3f(*self.colors['label_ok'])
         return cond
-        ##################################################################### --показать заготовку       
+        ##################################################################### --показать заготовку 
+
+     
     def blank (self):            
         s = self.stat
         g = self.canon
@@ -567,13 +579,19 @@ class GlCanonDraw:
         self.color_limit(0)
         glColor3f(*self.colors['small_origin'])
 
-        glBegin(GL_LINES)
-        if 1 :
+
+        if self.canon.blank_f :
+            glBegin(GL_LINES)
             bp = self.pincomp['begin_blank_horiz'] /25.4
             ep = self.pincomp['begin_blank_vertical']/25.4
             hb = self.pincomp['height_blank']/25.4
             lb = self.pincomp['length_blank']/25.4
-
+            
+            hb = hb + self.canon.blank_d/25.4
+            if hb < 0: hb = 0 
+            lb = lb + self.canon.blank_l/25.4
+            if lb < 0: lb = 0 
+            
             #заготовка:
             glVertex3f(bp,0,ep)
             glVertex3f((bp+hb/2),0,ep)
@@ -659,15 +677,16 @@ class GlCanonDraw:
             
             glEnd()                                   
         #осевая линия:                                                           
-
-        kk = lb
-        while kk>0:
-            glBegin(GL_LINES)
-            glVertex3f(bp,0,ep)
-            glVertex3f(bp,0,(ep-lb*0.1))
-            glEnd()
-            kk-=lb*0.13
-            ep-=lb*0.15
+            kk = lb
+            while kk>0:
+                glBegin(GL_LINES)
+                glVertex3f(bp,0,ep)
+                glVertex3f(bp,0,(ep-lb*0.1))
+                glVertex3f(bp,0,(ep-lb*0.14))
+                glVertex3f(bp,0,(ep-lb*0.16))
+                glEnd()
+                kk-=lb*0.18
+                ep-=lb*0.2
                      
         ######################################################################################
     def show_extents(self): # ------------------------------------------размеры
