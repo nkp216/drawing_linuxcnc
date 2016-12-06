@@ -556,7 +556,7 @@ class GlCanonDraw:
         else:
             glColor3f(*self.colors['label_ok'])
         return cond
-        ########################################################################################################### --показать заготовку       
+        ##################################################################### --показать заготовку       
     def blank (self):            
         s = self.stat
         g = self.canon
@@ -589,12 +589,77 @@ class GlCanonDraw:
             
             glVertex3f(bp-hb/2,0,(ep))
             glVertex3f(bp,0,ep)
-            #осевая линия:
-            glVertex3f(bp,0,ep)
-            glVertex3f(bp,0,ep)
+        #патрон:
+            #glColor3f(*self.colors['axis_z'])
+            rr=hb/2
+            #в.кулачок:
+            glVertex3f(bp-rr,0,(ep-lb*0.9))
+            glVertex3f(((bp-rr)-rr*0.5),0,(ep-lb*0.9))
+            
+            glVertex3f(((bp-rr)-rr*0.5),0,(ep-lb*0.9))
+            glVertex3f(((bp-rr)-rr*0.5),0,(ep-(lb*0.9+rr/4)))
+            
+            glVertex3f(((bp-rr)-rr*0.5),0,(ep-(lb*0.9+rr/4)))
+            glVertex3f(((bp-rr)-2*rr*0.5),0,(ep-(lb*0.9+rr/4)))
+            
+            glVertex3f(((bp-rr)-2*rr*0.5),0,(ep-(lb*0.9+rr/4)))
+            glVertex3f(((bp-rr)-2*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
+            
+            glVertex3f(((bp-rr)-2*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
+            glVertex3f(((bp-rr)-3*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
+            
+            glVertex3f(((bp-rr)-3*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
+            glVertex3f(((bp-rr)-3*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
+            
+            glVertex3f(((bp-rr)-3*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
+            glVertex3f((bp-rr),0,(ep-(lb*0.9+3*rr/4)))
+            
+            glVertex3f((bp-rr),0,(ep-(lb*0.9+3*rr/4)))
+            glVertex3f((bp-rr),0,(ep-lb*0.9))
+          #н.кулачок:
+            glVertex3f(bp+rr,0,(ep-lb*0.9))
+            glVertex3f(((bp+rr)+rr*0.5),0,(ep-lb*0.9))
+            
+            glVertex3f(((bp+rr)+rr*0.5),0,(ep-lb*0.9))
+            glVertex3f(((bp+rr)+rr*0.5),0,(ep-(lb*0.9+rr/4)))
+            
+            glVertex3f(((bp+rr)+rr*0.5),0,(ep-(lb*0.9+rr/4)))
+            glVertex3f(((bp+rr)+2*rr*0.5),0,(ep-(lb*0.9+rr/4)))
+            
+            glVertex3f(((bp+rr)+2*rr*0.5),0,(ep-(lb*0.9+rr/4)))
+            glVertex3f(((bp+rr)+2*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
+            
+            glVertex3f(((bp+rr)+2*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
+            glVertex3f(((bp+rr)+3*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
+            
+            glVertex3f(((bp+rr)+3*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
+            glVertex3f(((bp+rr)+3*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
+            
+            glVertex3f(((bp+rr)+3*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
+            glVertex3f((bp+rr),0,(ep-(lb*0.9+3*rr/4)))
+            
+            glVertex3f((bp+rr),0,(ep-(lb*0.9+3*rr/4)))
+            glVertex3f((bp+rr),0,(ep-lb*0.9))            
+           #корпус патрона: 
+            glVertex3f((bp),0,(ep-(lb*0.9+3*rr/4)))
+            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
+            
+            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
+            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb*0.9+8.5*rr/4)))
+            
+            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb*0.9+8.5*rr/4)))
+            glVertex3f(((bp-rr)-2.75*rr*0.5),0,(ep-(lb*0.9+8.5*rr/4)))
+            
+            glVertex3f(((bp-rr)-2.75*rr*0.5),0,(ep-(lb*0.9+8.5*rr/4)))
+            glVertex3f(((bp-rr)-2.75*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
+            
+            glVertex3f(((bp-rr)-2.75*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
+            glVertex3f((bp),0,(ep-(lb*0.9+3*rr/4)))
+            
+            
+            glEnd()                                   
+        #осевая линия:                                                           
 
-                                                            
-        glEnd()
         kk = lb
         while kk>0:
             glBegin(GL_LINES)
@@ -603,9 +668,9 @@ class GlCanonDraw:
             glEnd()
             kk-=lb*0.13
             ep-=lb*0.15
-
-        ###########################################################################################################
-    def show_extents(self): # ----------------------------------------------------------------------размеры
+                     
+        ######################################################################################
+    def show_extents(self): # ------------------------------------------размеры
         s = self.stat
         g = self.canon
 
