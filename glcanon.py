@@ -577,47 +577,84 @@ class GlCanonDraw:
             if lb < 0: lb = 0 
             glColor3f(0.4, 0.4, 0.4)
             rr=hb/2
-        #заготовка:
-            glBegin(GL_LINE_LOOP)
-            glVertex3f(bp-hb/2,0,(ep-lb-rr/3))
-            glVertex3f((bp+hb/2),0,(ep-lb-rr/3))
-            glVertex3f((bp+hb/2),0,ep)
-            glVertex3f(bp-hb/2,0,(ep))
-            glEnd() 
-        #патрон:
-
-            #в.кулачок:
-            glBegin(GL_LINE_LOOP) 
-            glVertex3f(bp-rr,0,(ep-lb))
-            glVertex3f(((bp-rr)-rr*0.5),0,(ep-lb))
-            glVertex3f(((bp-rr)-rr*0.5),0,(ep-(lb+rr/4)))
-            glVertex3f(((bp-rr)-2*rr*0.5),0,(ep-(lb+rr/4)))
-            glVertex3f(((bp-rr)-2*rr*0.5),0,(ep-(lb+2*rr/4)))
-            glVertex3f(((bp-rr)-3*rr*0.5),0,(ep-(lb+2*rr/4)))
-            glVertex3f(((bp-rr)-3*rr*0.5),0,(ep-(lb+3*rr/4)))
-            glVertex3f((bp-rr),0,(ep-(lb+3*rr/4)))
-            glVertex3f((bp-rr),0,(ep-lb))
-            glEnd()
-        #н.кулачок:
-            glBegin(GL_LINE_LOOP) 
-            glVertex3f(bp+rr,0,(ep-lb))
-            glVertex3f(((bp+rr)+rr*0.5),0,(ep-lb))
-            glVertex3f(((bp+rr)+rr*0.5),0,(ep-(lb+rr/4)))
-            glVertex3f(((bp+rr)+2*rr*0.5),0,(ep-(lb+rr/4)))
-            glVertex3f(((bp+rr)+2*rr*0.5),0,(ep-(lb+2*rr/4)))
-            glVertex3f(((bp+rr)+3*rr*0.5),0,(ep-(lb+2*rr/4)))
-            glVertex3f(((bp+rr)+3*rr*0.5),0,(ep-(lb+3*rr/4)))
-            glVertex3f((bp+rr),0,(ep-(lb+3*rr/4)))
-            glVertex3f((bp+rr),0,(ep-lb))
-            glEnd()            
-         #корпус патрона:
-            glBegin(GL_LINE_LOOP)
-            glVertex3f(((bp-rr)-2.75*rr*0.5),0,(ep-(lb+8.5*rr/4)))
-            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb+8.5*rr/4)))
-            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb+3*rr/4)))
-            glVertex3f(((bp-rr)-2.75*rr*0.5),0,(ep-(lb+3*rr/4)))           
-            glEnd()                                   
-        #осевая линия:                                                           
+            i_to_mm=1/25.4
+            if rr <= 60*i_to_mm:
+                #заготовка:
+                glBegin(GL_LINE_LOOP)
+                glVertex3f(-rr,0,(ep-lb-12*i_to_mm))
+                glVertex3f(rr,0,(ep-lb-12*i_to_mm))
+                glVertex3f(rr,0,ep)
+                glVertex3f(-rr,0,(ep))
+                glEnd() 
+                #патрон:
+                #в.кулачок:
+                glBegin(GL_LINE_LOOP) 
+                glVertex3f(-rr,0,ep-lb)
+                glVertex3f(-rr-25*i_to_mm,0,ep-lb)
+                glVertex3f(-rr-25*i_to_mm,0,ep-lb-10*i_to_mm)
+                glVertex3f(-rr-50*i_to_mm,0,ep-lb-10*i_to_mm)
+                glVertex3f(-rr-50*i_to_mm,0,ep-lb-20*i_to_mm)
+                glVertex3f(-rr-81*i_to_mm,0,ep-lb-20*i_to_mm)
+                glVertex3f(-rr-81*i_to_mm,0,ep-lb-32*i_to_mm)
+                glVertex3f(-rr,0,ep-lb-32*i_to_mm)          
+                glEnd()
+                #н.кулачок:
+                glBegin(GL_LINE_LOOP) 
+                glVertex3f(rr,0,ep-lb)
+                glVertex3f(rr+25*i_to_mm,0,ep-lb)
+                glVertex3f(rr+25*i_to_mm,0,ep-lb-10*i_to_mm)
+                glVertex3f(rr+50*i_to_mm,0,ep-lb-10*i_to_mm)
+                glVertex3f(rr+50*i_to_mm,0,ep-lb-20*i_to_mm)
+                glVertex3f(rr+81*i_to_mm,0,ep-lb-20*i_to_mm)
+                glVertex3f(rr+81*i_to_mm,0,ep-lb-32*i_to_mm)
+                glVertex3f(rr,0,ep-lb-32*i_to_mm)
+                glEnd()
+                #корпус патрона (250mm):
+                glBegin(GL_LINE_LOOP)
+                glVertex3f(-125*i_to_mm,0,ep-lb-32*i_to_mm)
+                glVertex3f(-125*i_to_mm,0,ep-lb-122*i_to_mm)
+                glVertex3f(125*i_to_mm,0,ep-lb-122*i_to_mm)
+                glVertex3f(125*i_to_mm,0,ep-lb-32*i_to_mm)         
+                glEnd() 
+            else:
+                #заготовка:
+                glBegin(GL_LINE_LOOP)
+                glVertex3f(-rr,0,(ep-lb))
+                glVertex3f(rr,0,(ep-lb))
+                glVertex3f(rr,0,ep)
+                glVertex3f(-rr,0,(ep))
+                glEnd()
+                #в.кулачок: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                glBegin(GL_LINE_LOOP)
+                glVertex3f(-rr,0,ep-lb)
+                glVertex3f(-rr,0,ep-lb+10*i_to_mm)
+                glVertex3f(-rr-25*i_to_mm,0,ep-lb+10*i_to_mm)
+                glVertex3f(-rr-25*i_to_mm,0,ep-lb-22*i_to_mm)
+                glVertex3f(-rr+62*i_to_mm,0,ep-lb-22*i_to_mm)
+                glVertex3f(-rr+62*i_to_mm,0,ep-lb-10*i_to_mm)
+                glVertex3f(-rr+25*i_to_mm,0,ep-lb-10*i_to_mm)
+                glVertex3f(-rr+25*i_to_mm,0,ep-lb)
+                glEnd() 
+           #н.кулачок:
+                glBegin(GL_LINE_LOOP)
+                glVertex3f(rr,0,ep-lb)
+                glVertex3f(rr,0,ep-lb+10*i_to_mm)
+                glVertex3f(rr+25*i_to_mm,0,ep-lb+10*i_to_mm)
+                glVertex3f(rr+25*i_to_mm,0,ep-lb-22*i_to_mm)
+                glVertex3f(rr-62*i_to_mm,0,ep-lb-22*i_to_mm)
+                glVertex3f(rr-62*i_to_mm,0,ep-lb-10*i_to_mm)
+                glVertex3f(rr-25*i_to_mm,0,ep-lb-10*i_to_mm)
+                glVertex3f(rr-25*i_to_mm,0,ep-lb)
+                glEnd() 
+               #корпус патрона:
+                glBegin(GL_LINE_LOOP)
+                glVertex3f(-125*i_to_mm,0,ep-lb-22*i_to_mm)
+                glVertex3f(-125*i_to_mm,0,ep-lb-122*i_to_mm)
+                glVertex3f(125*i_to_mm,0,ep-lb-122*i_to_mm)
+                glVertex3f(125*i_to_mm,0,ep-lb-22*i_to_mm)         
+                glEnd()               
+                                  
+            #осевая линия:                                                           
             kk = lb
             while kk>0:
                 glBegin(GL_LINES)
