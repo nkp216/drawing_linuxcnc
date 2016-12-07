@@ -76,7 +76,8 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
         self.notify = 0
         self.notify_message = ""
         self.blank_f = 0
-
+        self.blank_d = 0
+        self.blank_l = 0
 
     def comment(self, arg):   # -----------------------------------------------------------команды в G-коде
         if arg.startswith("AXIS,"):
@@ -87,7 +88,7 @@ class GLCanon(Translated, ArcsToSegmentsMixin):
             if command == "show": self.suppress -= 1
             if command == "BLANK":
                 self.blank_f = 1
-                if len(parts) > 2 :
+                if len(parts) > 3 :
                     try:
                         self.blank_d = float(parts[2])
                         self.blank_l = float(parts[3])
@@ -573,15 +574,8 @@ class GlCanonDraw:
         s = self.stat
         g = self.canon
         if g is None: return
-        x,y,z,p = 0,1,2,3
-        view = self.get_view()
-
         self.color_limit(0)
-        glColor3f(*self.colors['small_origin'])
-
-
-        if self.canon.blank_f :
-            glBegin(GL_LINES)
+        if self.canon.blank_f :            
             bp = self.pincomp['begin_blank_horiz'] /25.4
             ep = self.pincomp['begin_blank_vertical']/25.4
             hb = self.pincomp['height_blank']/25.4
@@ -591,90 +585,46 @@ class GlCanonDraw:
             if hb < 0: hb = 0 
             lb = lb + self.canon.blank_l/25.4
             if lb < 0: lb = 0 
-            
+            glColor3f(0.4, 0.4, 0.4)
             #заготовка:
-            glVertex3f(bp,0,ep)
-            glVertex3f((bp+hb/2),0,ep)
-            
-            glVertex3f((bp+hb/2),0,ep)
-            glVertex3f((bp+hb/2),0,(ep-lb))
-            
-            glVertex3f((bp+hb/2),0,(ep-lb))
+            glBegin(GL_LINE_LOOP)
             glVertex3f(bp-hb/2,0,(ep-lb))
-
-            glVertex3f(bp-hb/2,0,(ep-lb))
+            glVertex3f((bp+hb/2),0,(ep-lb))
+            glVertex3f((bp+hb/2),0,ep)
             glVertex3f(bp-hb/2,0,(ep))
-            
-            glVertex3f(bp-hb/2,0,(ep))
-            glVertex3f(bp,0,ep)
+            glEnd() 
         #патрон:
-            #glColor3f(*self.colors['axis_z'])
             rr=hb/2
             #в.кулачок:
+            glBegin(GL_LINE_LOOP) 
             glVertex3f(bp-rr,0,(ep-lb*0.9))
             glVertex3f(((bp-rr)-rr*0.5),0,(ep-lb*0.9))
-            
-            glVertex3f(((bp-rr)-rr*0.5),0,(ep-lb*0.9))
-            glVertex3f(((bp-rr)-rr*0.5),0,(ep-(lb*0.9+rr/4)))
-            
             glVertex3f(((bp-rr)-rr*0.5),0,(ep-(lb*0.9+rr/4)))
             glVertex3f(((bp-rr)-2*rr*0.5),0,(ep-(lb*0.9+rr/4)))
-            
-            glVertex3f(((bp-rr)-2*rr*0.5),0,(ep-(lb*0.9+rr/4)))
-            glVertex3f(((bp-rr)-2*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
-            
             glVertex3f(((bp-rr)-2*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
             glVertex3f(((bp-rr)-3*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
-            
-            glVertex3f(((bp-rr)-3*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
             glVertex3f(((bp-rr)-3*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
-            
-            glVertex3f(((bp-rr)-3*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
-            glVertex3f((bp-rr),0,(ep-(lb*0.9+3*rr/4)))
-            
             glVertex3f((bp-rr),0,(ep-(lb*0.9+3*rr/4)))
             glVertex3f((bp-rr),0,(ep-lb*0.9))
+            glEnd()
           #н.кулачок:
+            glBegin(GL_LINE_LOOP) 
             glVertex3f(bp+rr,0,(ep-lb*0.9))
             glVertex3f(((bp+rr)+rr*0.5),0,(ep-lb*0.9))
-            
-            glVertex3f(((bp+rr)+rr*0.5),0,(ep-lb*0.9))
-            glVertex3f(((bp+rr)+rr*0.5),0,(ep-(lb*0.9+rr/4)))
-            
             glVertex3f(((bp+rr)+rr*0.5),0,(ep-(lb*0.9+rr/4)))
             glVertex3f(((bp+rr)+2*rr*0.5),0,(ep-(lb*0.9+rr/4)))
-            
-            glVertex3f(((bp+rr)+2*rr*0.5),0,(ep-(lb*0.9+rr/4)))
-            glVertex3f(((bp+rr)+2*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
-            
             glVertex3f(((bp+rr)+2*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
             glVertex3f(((bp+rr)+3*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
-            
-            glVertex3f(((bp+rr)+3*rr*0.5),0,(ep-(lb*0.9+2*rr/4)))
-            glVertex3f(((bp+rr)+3*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
-            
             glVertex3f(((bp+rr)+3*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
             glVertex3f((bp+rr),0,(ep-(lb*0.9+3*rr/4)))
-            
-            glVertex3f((bp+rr),0,(ep-(lb*0.9+3*rr/4)))
-            glVertex3f((bp+rr),0,(ep-lb*0.9))            
-           #корпус патрона: 
-            glVertex3f((bp),0,(ep-(lb*0.9+3*rr/4)))
-            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
-            
-            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
-            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb*0.9+8.5*rr/4)))
-            
-            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb*0.9+8.5*rr/4)))
+            glVertex3f((bp+rr),0,(ep-lb*0.9))
+            glEnd()            
+           #корпус патрона:
+            glBegin(GL_LINE_LOOP)
             glVertex3f(((bp-rr)-2.75*rr*0.5),0,(ep-(lb*0.9+8.5*rr/4)))
-            
-            glVertex3f(((bp-rr)-2.75*rr*0.5),0,(ep-(lb*0.9+8.5*rr/4)))
-            glVertex3f(((bp-rr)-2.75*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
-            
-            glVertex3f(((bp-rr)-2.75*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
-            glVertex3f((bp),0,(ep-(lb*0.9+3*rr/4)))
-            
-            
+            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb*0.9+8.5*rr/4)))
+            glVertex3f(((bp+rr)+2.75*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))
+            glVertex3f(((bp-rr)-2.75*rr*0.5),0,(ep-(lb*0.9+3*rr/4)))           
             glEnd()                                   
         #осевая линия:                                                           
             kk = lb
